@@ -14,7 +14,7 @@ The project involves utilizing PySpark for data processing on a substantial data
 2. wait for environment to be installed
 3. run: python main.py
 
-# Sample CRUD Operations
+# Procedure
 - Extract the dataset via extract
 - Start a spark session via start_spark
 - Load the dataset via load_data

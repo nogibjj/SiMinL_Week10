@@ -70,7 +70,6 @@ def test_example_transform():
 
 
 if __name__ == "__main__":
-    spark()
     test_csv_file_exists()
     test_read_csv()
     test_describe()
