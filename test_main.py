@@ -3,115 +3,76 @@ Test goes here
 
 """
 
-import subprocess
+import pytest
+import os
+from pyspark.sql import SparkSession
+
+from mylib.lib import (
+    start_spark,
+    end_spark,
+    read_csv,
+    describe,
+    run_query,
+    example_transform,
+)
+
+# Sample CSV path for testing
+TEST_CSV_FILE_PATH = "data/pokemon.csv"
 
 
-def test_extract():
-    """tests extract()"""
-    result = subprocess.run(
-        ["python", "main.py", "extract"],
-        capture_output=True,
-        text=True,
-        check=True,
+@pytest.fixture(scope="module")
+def spark():
+    """Fixture to initialize and
+    tear down the Spark session for all tests."""
+    spark_session = start_spark("TestApp")
+    yield spark_session
+    end_spark(spark_session)
+
+
+def test_csv_file_exists():
+    """Test to ensure the CSV file path exists for testing."""
+    assert os.path.exists(TEST_CSV_FILE_PATH), "CSV file does not exist."
+
+
+def test_read_csv():
+    spark = start_spark(app_name="PySpark Data Processing")
+    df = read_csv(spark, TEST_CSV_FILE_PATH)
+    assert df.count() > 0, "Test failed."
+    assert "name" in df.columns
+    print("CSV file reading test passed successfully.")
+
+
+def test_describe():
+    spark = start_spark(app_name="PySpark Data Processing")
+    df = read_csv(spark, TEST_CSV_FILE_PATH)
+    result = describe(df)
+    assert result is None
+
+
+def test_run_query():
+    # Create SparkSession for testing
+    spark = SparkSession.builder.appName("Spark SQL Query Test").getOrCreate()
+    df = read_csv(spark, TEST_CSV_FILE_PATH)
+    result = run_query(
+        spark,
+        df,
+        "SELECT name FROM pokemon WHERE abilities LIKE '%Beast Boost%'",
+        "pokemon",
     )
-    assert result.returncode == 0
-    assert "Extracting data..." in result.stdout
+    assert result is None
 
 
-def test_transform_load():
-    """tests transfrom_load"""
-    result = subprocess.run(
-        ["python", "main.py", "transform_load"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.returncode == 0
-    assert "Transforming data..." in result.stdout
-
-
-def test_create_record():
-    """tests create_record"""
-    result = subprocess.run(
-        [
-            "python",
-            "main.py",
-            "create_record",
-            "Computer Science",
-            "STEM",
-            "1500",
-            "1200",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.returncode == 0
-
-
-def test_update_record():
-    """tests update_record"""
-    result = subprocess.run(
-        [
-            "python",
-            "main.py",
-            "update_record",
-            "1",
-            "Electrical Engineering",
-            "STEM",
-            "2000",
-            "1500",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.returncode == 0
-
-
-def test_delete_record():
-    """tests delete_record"""
-    result = subprocess.run(
-        ["python", "main.py", "delete_record", "1"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.returncode == 0
-
-
-def test_general_query():
-    """tests general_query"""
-    result = subprocess.run(
-        [
-            "python",
-            "main.py",
-            "general_query",
-            "SELECT * FROM gradstudentsDB WHERE Major='CONSTRUCTION SERVICES'",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.returncode == 0
-
-
-def test_read_data():
-    """tests read_data"""
-    result = subprocess.run(
-        ["python", "main.py", "read_data"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.returncode == 0
+def test_example_transform():
+    spark = SparkSession.builder.appName("Spark SQL Query Test").getOrCreate()
+    df = read_csv(spark, TEST_CSV_FILE_PATH)
+    result = example_transform(df)
+    assert "Type_Category" in result.columns
 
 
 if __name__ == "__main__":
-    test_extract()
-    test_transform_load()
-    test_create_record()
-    test_read_data()
-    test_update_record()
-    test_delete_record()
-    test_general_query()
+    spark()
+    test_csv_file_exists()
+    test_read_csv()
+    test_describe()
+    test_run_query()
+    test_example_transform()
