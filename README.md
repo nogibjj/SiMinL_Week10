@@ -1,4 +1,4 @@
-
+[![CI](https://github.com/nogibjj/SiMinL_Week10/actions/workflows/CI.yml/badge.svg)](https://github.com/nogibjj/SiMinL_Week10/actions/workflows/CI.yml)
 
 # SiMinL_Week10 PySpark
 
